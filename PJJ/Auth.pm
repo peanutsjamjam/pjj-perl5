@@ -322,7 +322,7 @@ sub _reset_request {
     my $cols = _user_cols('', qw(id email));
     my $u = $dbh->selectrow_hashref(
         "SELECT $cols FROM users WHERE lower(email) = lower(?)", undef, $email);
-    # 再設定を受け付けないユーザー（nenpyo のゲストなど）は居なかったことにする。
+    # 再設定を受け付けないユーザー（一時ユーザーなど）は居なかったことにする。
     my $eligible = PJJ::conf('reset_eligible');
     $u = undef if $u && $eligible && !$eligible->($u);
 

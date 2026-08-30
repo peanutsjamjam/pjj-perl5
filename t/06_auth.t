@@ -1,5 +1,6 @@
 # PJJ::Auth のうち、DB を伴わない部分（どの action を担当するか・メール内リンクの書式・
-# アカウント応答の形）を確かめる。エンドポイントの中身は zigsaw の t/ が結合テストで通す。
+# アカウント応答の形）を確かめる。エンドポイントの中身は DB が要るので、利用側アプリの
+# 結合テストで通す（このリポジトリには入っていない）。
 use strict;
 use warnings;
 use FindBin;
@@ -23,7 +24,7 @@ use PJJ::Auth qw(auth_dispatch);
 }
 
 # auth_actions で絞ると、そこに無い action は担当しない
-# （jammemo のように signup_tokens テーブルを持たないアプリのための仕組み）。
+# （signup_tokens テーブルを持たないアプリのための仕組み）。
 {
     PJJ::_reset();
     PJJ->init(cookie_name => 'x_sid', auth_actions => [qw(login logout me)]);
@@ -35,26 +36,26 @@ use PJJ::Auth qw(auth_dispatch);
 # ---- メール内リンクの書式 ----
 {
     PJJ::_reset();
-    PJJ->init(cookie_name => 'x_sid', base_url => 'https://nenpyo.example/');
-    is(PJJ::Auth::_signup_link('tok123'), 'https://nenpyo.example/?signup=tok123',
+    PJJ->init(cookie_name => 'x_sid', base_url => 'https://app.example.com/');
+    is(PJJ::Auth::_signup_link('tok123'), 'https://app.example.com/?signup=tok123',
        '既定の登録リンクは ?signup=<token>');
-    is(PJJ::Auth::_reset_link('tok123'), 'https://nenpyo.example/?reset=tok123',
+    is(PJJ::Auth::_reset_link('tok123'), 'https://app.example.com/?reset=tok123',
        '既定の再設定リンクは ?reset=<token>');
-    is(PJJ::Auth::_login_link(), 'https://nenpyo.example/', '既定のログインリンクはベース URL');
+    is(PJJ::Auth::_login_link(), 'https://app.example.com/', '既定のログインリンクはベース URL');
 }
 {
-    # wslfan は HashRouter なので "#/..." 形式に差し替える。
+    # フロントが HashRouter のアプリでは "#/..." 形式に差し替える。
     PJJ::_reset();
     PJJ->init(
         cookie_name => 'x_sid',
-        base_url    => 'https://wslfan.example/',
-        signup_link => sub { "https://wslfan.example/#/signup/$_[0]" },
-        reset_link  => sub { "https://wslfan.example/#/reset/$_[0]" },
-        login_link  => sub { 'https://wslfan.example/#/login' },
+        base_url    => 'https://hash.example.com/',
+        signup_link => sub { "https://hash.example.com/#/signup/$_[0]" },
+        reset_link  => sub { "https://hash.example.com/#/reset/$_[0]" },
+        login_link  => sub { 'https://hash.example.com/#/login' },
     );
-    is(PJJ::Auth::_signup_link('t'), 'https://wslfan.example/#/signup/t', '登録リンクを差し替えられる');
-    is(PJJ::Auth::_reset_link('t'),  'https://wslfan.example/#/reset/t',  '再設定リンクを差し替えられる');
-    is(PJJ::Auth::_login_link(),     'https://wslfan.example/#/login',    'ログインリンクを差し替えられる');
+    is(PJJ::Auth::_signup_link('t'), 'https://hash.example.com/#/signup/t', '登録リンクを差し替えられる');
+    is(PJJ::Auth::_reset_link('t'),  'https://hash.example.com/#/reset/t',  '再設定リンクを差し替えられる');
+    is(PJJ::Auth::_login_link(),     'https://hash.example.com/#/login',    'ログインリンクを差し替えられる');
 }
 
 # ---- アカウント応答の形 ----

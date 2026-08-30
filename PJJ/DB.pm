@@ -1,8 +1,9 @@
 package PJJ::DB;
 # PostgreSQL への接続と、Pg の boolean を JSON に直す小道具。
 #
-# 接続は peer 認証（パスワード不要）。dev は suexec で sugawara、本番は apache として
-# 実行されるので、どちらのロールにも権限を与えておくこと。
+# 接続はローカルの peer 認証（パスワード不要）を前提にしている。CGI を実行するロール
+# （Apache 経由なら apache、suexec なら実行ユーザ）にテーブル権限を与えておくこと。
+# 実行環境が複数あるなら、そのすべてのロールに与える必要がある。
 
 use strict;
 use warnings;

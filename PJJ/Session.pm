@@ -52,7 +52,7 @@ sub start_session {
 }
 
 # current_user が users から引く列。id / username / email に加えて、アプリ固有の列
-# （nenpyo の is_guest、wslfan/zigsaw の is_admin）を PJJ->init(user_columns => [...]) で足す。
+# （is_admin / is_guest など）を PJJ->init(user_columns => [...]) で足す。
 sub _user_select_list {
     my @cols = ('id', 'username', 'email');
     my $extra = PJJ::conf('user_columns') || [];

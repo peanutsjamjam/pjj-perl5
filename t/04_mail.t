@@ -50,18 +50,18 @@ sub subject_of {
 }
 
 PJJ::_reset();
-PJJ->init(app => 'nenpyo', cookie_name => 'x',
-          mail_from => 'nenpyo@peanutsjamjam.jp', sendmail => $FAKE,
+PJJ->init(app => 'My App', cookie_name => 'x',
+          mail_from => 'noreply@example.com', sendmail => $FAKE,
           signup_token_hours => 1, reset_token_hours => 2);
 
 # ---- 登録用リンク ----
 clear();
 ok(send_signup_email('a@example.jp', 'https://example.test/?signup=tok'), '登録メールの送信が成功する');
 my $raw = sent();
-like($raw, qr/^From: nenpyo <nenpyo\@peanutsjamjam\.jp>/m, 'From に表示名とアドレスが入る');
+like($raw, qr/^From: My App <noreply\@example\.com>/m, 'From に表示名とアドレスが入る');
 like($raw, qr/^To: a\@example\.jp/m,                        'To が宛先');
 like($raw, qr{Content-Transfer-Encoding: base64},           '本文は base64');
-like(subject_of($raw), qr/Your nenpyo sign-up link \/ 【nenpyo】登録用リンクのお知らせ/,
+like(subject_of($raw), qr/Your My App sign-up link \/ 【My App】登録用リンクのお知らせ/,
      '件名が英語→日本語の併記');
 my $body = body_of($raw);
 like($body, qr{https://example\.test/\?signup=tok}, '本文にリンクが入る');
@@ -72,14 +72,14 @@ like($body, qr/このリンクは 1 時間のみ有効です/,      '有効時�
 clear();
 ok(send_reset_email('b@example.jp', 'https://example.test/?reset=tok'), '再設定メールの送信が成功する');
 $raw = sent();
-like(subject_of($raw), qr/Reset your nenpyo password/, '再設定メールの件名');
+like(subject_of($raw), qr/Reset your My App password/, '再設定メールの件名');
 like(body_of($raw), qr/valid for 2 hour\(s\)/, '再設定リンクは reset_token_hours を使う');
 
 # ---- 既に登録済みの案内 ----
 clear();
 ok(send_signup_exists_email('c@example.jp', 'https://example.test/'), '案内メールの送信が成功する');
 $raw = sent();
-like(subject_of($raw), qr/About your nenpyo account/, '案内メールの件名');
+like(subject_of($raw), qr/About your My App account/, '案内メールの件名');
 unlike(body_of($raw), qr/signup=/, '案内メールには登録リンクを載せない');
 
 clear();

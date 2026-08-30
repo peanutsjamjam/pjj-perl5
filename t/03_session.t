@@ -30,15 +30,15 @@ sub run_cgi {
     return $out;
 }
 
-my %BASE = (SCRIPT_NAME => '/~sugawara/nenpyo/api.cgi');
+my %BASE = (SCRIPT_NAME => '/~user/myapp/api.cgi');
 
 # ---- Set-Cookie ----
 {
     my $out = run_cgi(
-        q{PJJ->init(cookie_name=>'nenpyo_sid'); set_session_cookie('abc123'); respond({});},
+        q{PJJ->init(cookie_name=>'myapp_sid'); set_session_cookie('abc123'); respond({});},
         \%BASE);
-    like($out, qr{Set-Cookie: nenpyo_sid=abc123;}, 'Cookie 名と値が入る');
-    like($out, qr{Path=/~sugawara/nenpyo/;},       'Path が配信ディレクトリになる');
+    like($out, qr{Set-Cookie: myapp_sid=abc123;}, 'Cookie 名と値が入る');
+    like($out, qr{Path=/~user/myapp/;},       'Path が配信ディレクトリになる');
     like($out, qr{Max-Age=2592000;},               '既定 30 日ぶんの Max-Age');
     like($out, qr{HttpOnly},                       'HttpOnly が付く');
     like($out, qr{Secure},                         'Secure が付く');

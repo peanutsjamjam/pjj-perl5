@@ -15,12 +15,12 @@ is(PJJ::conf('cache_control'), undef,  '既定では Cache-Control を付けな�
 
 # 上書き
 {
-    local $ENV{SCRIPT_NAME} = '/~sugawara/nenpyo/api.cgi';
+    local $ENV{SCRIPT_NAME} = '/~user/myapp/api.cgi';
     PJJ::_reset();
-    PJJ->init(app => 'nenpyo', db => 'nenpyo', cookie_name => 'nenpyo_sid', session_days => 7);
-    is(PJJ::conf('app'),          'nenpyo',     'app を設定できる');
+    PJJ->init(app => 'My App', db => 'myapp', cookie_name => 'myapp_sid', session_days => 7);
+    is(PJJ::conf('app'),          'My App',     'app を設定できる');
     is(PJJ::conf('session_days'), 7,            'session_days を上書きできる');
-    is(PJJ::conf('cookie_path'), '/~sugawara/nenpyo/', 'Cookie Path を SCRIPT_NAME から自動判定する');
+    is(PJJ::conf('cookie_path'), '/~user/myapp/', 'Cookie Path を SCRIPT_NAME から自動判定する');
 }
 
 # 本番のように SCRIPT_NAME がルート直下でも正しく '/' になる

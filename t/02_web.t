@@ -45,8 +45,8 @@ sub run_cgi {
 
 # ---- Cookie ----
 {
-    local $ENV{HTTP_COOKIE} = 'foo=1; nenpyo_sid=deadbeef; bar=2';
-    is(get_cookie('nenpyo_sid'), 'deadbeef', 'get_cookie が値を返す');
+    local $ENV{HTTP_COOKIE} = 'foo=1; myapp_sid=deadbeef; bar=2';
+    is(get_cookie('myapp_sid'), 'deadbeef', 'get_cookie が値を返す');
     is(get_cookie('missing'), undef, '無い Cookie は undef');
 }
 
@@ -54,10 +54,10 @@ sub run_cgi {
 {
     PJJ::_reset();
     PJJ->init(cookie_name => 'x');
-    local $ENV{HTTP_HOST}   = 'nenpyo.peanutsjamjam.jp';
+    local $ENV{HTTP_HOST}   = 'app.example.com';
     local $ENV{SCRIPT_NAME} = '/api.cgi';
     local $ENV{HTTPS}       = 'on';
-    is(app_base_url(), 'https://nenpyo.peanutsjamjam.jp/', '未設定ならリクエストから組み立てる');
+    is(app_base_url(), 'https://app.example.com/', '未設定ならリクエストから組み立てる');
 }
 {
     PJJ::_reset();

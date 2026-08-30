@@ -1,16 +1,16 @@
 package PJJ;
-# peanutsjamjam の各アプリ（nenpyo / wslfan / zigsaw / jammemo）が共通で使う
-# サインアップ・サインインまわりの土台。
+# サインアップ・サインインまわりの土台となる設定。作者の 4 つの Web アプリから
+# 共通部分を抜き出したもの。
 #
 # 使い方: api.cgi の先頭で1度だけ PJJ->init(...) を呼び、以降は各モジュールが
 # エクスポートする関数をそのまま使う。設定値は全モジュールがここから読む。
 #
 #   PJJ->init(
-#       app         => 'nenpyo',                   # メール文面・From に出る表示名
-#       db          => 'nenpyo',                   # PostgreSQL の DB 名
-#       cookie_name => 'nenpyo_sid',               # セッション Cookie の名前
-#       mail_from   => 'nenpyo@peanutsjamjam.jp',  # 確認メールの差出人
-#       user_columns => ['is_guest'],              # current_user が追加で引く列
+#       app         => 'My App',                 # メール文面・From に出る表示名
+#       db          => 'myapp',                  # PostgreSQL の DB 名
+#       cookie_name => 'myapp_sid',              # セッション Cookie の名前
+#       mail_from   => 'noreply@example.com',    # 確認メールの差出人
+#       user_columns => ['is_admin'],            # current_user が追加で引く列
 #   );
 #
 # 設定は PJJ::conf('cookie_name') で読める（未設定なら既定値）。
@@ -66,8 +66,8 @@ sub init {
     }
     # Cookie の Path は配信パスに合わせて自動判定する（環境ごとに固定値を持たない）。
     # SCRIPT_NAME から api.cgi を除いたディレクトリ部を使う。
-    #   dev : /~sugawara/nenpyo/api.cgi -> /~sugawara/nenpyo/
-    #   本番: /api.cgi                  -> /
+    #   /~user/myapp/api.cgi -> /~user/myapp/
+    #   /api.cgi             -> /
     unless (defined $CONF{cookie_path} && length $CONF{cookie_path}) {
         my $path = $ENV{SCRIPT_NAME} || '/';
         $path =~ s#/[^/]*$#/#;
