@@ -37,6 +37,21 @@ my %DEFAULT = (
     cache_control      => undef,        # 応答に付ける Cache-Control（undef = 付けない）
     user_columns       => [],           # current_user が users から追加で引く列（is_guest 等）
     access_log_keep_days => undef,      # アクセスログの保持日数（undef = 自動削除しない）
+
+    # ---- PJJ::Auth（認証エンドポイント）用 ----------------------------------
+    body_format        => 'json',       # リクエストボディの形式。'json' か 'form'
+    auth_actions       => undef,        # 受け付ける action の配列（undef = 全部）
+    password_min       => 4,            # パスワードの最小長
+    password_max       => 128,          # パスワードの最大長
+    username_max       => 50,           # ユーザー名の最大長
+    account_json       => undef,        # sub { my ($u) = @_; ... } アカウント応答の作り方
+    signup_link        => undef,        # sub { my ($token) = @_; ... } 登録リンク
+    reset_link         => undef,        # sub { my ($token) = @_; ... } 再設定リンク
+    login_link         => undef,        # sub { ... } 既存アカウント案内メールのリンク
+    rate_limit         => undef,        # { login_window_min, login_max_per_email, ... }（undef = 無し）
+    signup_create_user => undef,        # sub { my ($dbh, $a) = @_; ... } 既定は users へ INSERT
+    reset_eligible     => undef,        # sub { my ($u) = @_; ... } 再設定を受け付けるユーザーか
+    on_login           => undef,        # sub { my ($dbh, $u) = @_; ... } ログイン成功後の追加処理
 );
 
 my %CONF = %DEFAULT;

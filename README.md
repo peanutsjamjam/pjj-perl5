@@ -81,6 +81,22 @@ PJJ->init(
 | `user_columns` | `[]` | `current_user` が `users` から追加で引く列 |
 | `access_log_keep_days` | なし | アクセスログの保持日数（未設定なら自動削除しない） |
 
+`PJJ::Auth` を使うときは、さらに次を渡してアプリごとの違いを吸収する。
+
+| キー | 既定 | 意味 |
+|---|---|---|
+| `body_format` | `'json'` | リクエストボディの形式。`'json'` か `'form'`（wslfan は `'form'`） |
+| `auth_actions` | 全部 | 受け付ける action の配列。持っていないテーブルに触らせないために絞る |
+| `account_json` | `{username,email}` | `sub { my ($u) = @_; ... }` アカウント応答の形（`is_admin` / `guest` はここで足す） |
+| `signup_link` | `?signup=<t>` | `sub { my ($token) = @_; ... }` メール内の登録リンク |
+| `reset_link` | `?reset=<t>` | `sub { my ($token) = @_; ... }` メール内の再設定リンク |
+| `login_link` | ベース URL | `sub { ... }` 「既にアカウントがあります」案内メールのリンク |
+| `rate_limit` | なし | `{login_window_min, login_max_per_email, login_max_per_ip, mail_window_min, mail_max_per_email, mail_max_per_ip}` |
+| `signup_create_user` | INSERT | `sub { my ($dbh, $a) = @_; ... }` ユーザー作成（nenpyo のゲスト昇格用） |
+| `reset_eligible` | 全員 | `sub { my ($u) = @_; ... }` 再設定を受け付けるユーザーか（nenpyo はゲストを除く） |
+| `on_login` | なし | `sub { my ($dbh, $u) = @_; ... }` ログイン成功後の追加処理 |
+| `password_min` / `password_max` / `username_max` | 4 / 128 / 50 | 入力の長さ制限 |
+
 ## モジュール
 
 | モジュール | 主な関数 |
@@ -93,8 +109,38 @@ PJJ->init(
 | `PJJ::Mail` | `mime_word` `send_mail` `send_signup_email` `send_reset_email` `send_signup_exists_email` |
 | `PJJ::RateLimit` | `rate_count` `rate_add` `rate_clear` `purge_old_rate_events` |
 | `PJJ::AccessLog` | `log_access` `purge_old_access_log` |
+| `PJJ::Auth` | `auth_dispatch` — サインアップ／サインインのエンドポイントそのもの |
 
 `respond` と `fail` は応答を書き出して `exit` するので、呼んだ先から戻ってこない。
+
+### 認証エンドポイント（PJJ::Auth）
+
+`auth_dispatch` は次の 11 個を引き受ける。担当する action なら応答して `exit` し、
+担当外なら偽を返すので、そのままアプリ固有のルーティングへ進んでよい。
+
+```perl
+    my $dbh = db();
+    auth_dispatch($dbh, $action, $method);   # 認証系ならここで応答して終わる
+    if ($action eq 'teams' && $method eq 'GET') { ... }   # 以降はアプリ固有
+```
+
+| action | メソッド | 内容 |
+|---|---|---|
+| `signup_request` | POST | 確認リンクをメールで送る（まだ作らない） |
+| `signup_verify` | GET | リンクの有効性を確かめ email を返す |
+| `signup_complete` | POST | 登録してログイン状態に（重複は 409 `duplicate`） |
+| `login` | POST | ログイン |
+| `logout` | POST | ログアウト |
+| `me` | GET | ログイン中のアカウント（未ログインは 401） |
+| `change_password` | POST | パスワード変更 |
+| `reset_request` | POST | 再設定リンクをメールで送る |
+| `reset_verify` | GET | リンクの有効性を確かめ email を返す |
+| `reset_complete` | POST | 新パスワードを設定し、既存セッションを全て切って入り直す |
+| `account` | DELETE | 退会 |
+
+メールアドレスの存在は常に秘匿する。登録済みでも未登録でも同じ応答を返し、登録済みには
+リンクの代わりに「既にアカウントがあります」の案内を送る。ログインはユーザーが居なくても
+ダミーで PBKDF2 を回し、応答時間からの列挙も防ぐ。
 
 ### 前提とするテーブル
 
@@ -114,6 +160,11 @@ cd /home/sugawara/lib/perl5
 
 DB も実メールも使わない。`PJJ::Crypt` は RFC 6070 と同じ形の PBKDF2-HMAC-SHA256 の
 既知テストベクタで検証しているので、既存アカウントのハッシュとの互換が担保される。
+
+`PJJ::Auth` のエンドポイントの中身は DB が要るので、ここでは振り分け・リンク書式・応答の形
+だけを見る。実際の通し確認は **zigsaw の `t/`（353 件）** が担っている（本物の DB・メールには
+触れないサンドボックスで api.cgi を CGI として直接実行する）。ライブラリを直したら
+`cd ~/public_html/zigsaw && /usr/local/bin/prove t` も流すこと。
 
 なお `Test::More` も `fail()` を輸出するため、テストから `PJJ::Web` を丸ごと取り込むと
 プロトタイプの衝突が出る。テスト側では必要な関数だけ名前を挙げて取り込むこと。
